@@ -1,5 +1,7 @@
 # Smart Home Control
 
+[![Flutter CI](https://github.com/farai-coder/smart-home-control/actions/workflows/ci.yml/badge.svg)](https://github.com/farai-coder/smart-home-control/actions/workflows/ci.yml)
+
 A Flutter app for the house: lights, plugs, fans, climate, blinds, garage,
 locks, media, scenes, vacuum, alarm, camera, sensors, the gate and the vehicle
 plate whitelist. It carries a 59 command rule engine with tests, so the same
