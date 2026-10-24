@@ -136,14 +136,16 @@ class MqttHomeBus implements HomeBus {
   @override
   void publish(List<String> targetIds, String payload) {
     final client = _client;
-    if (client == null || !(client.connectionStatus?.isConnected ?? false)) {
+    if (client == null ||
+        client.connectionStatus?.state != MqttConnectionState.connected) {
       return;
     }
     for (final id in targetIds) {
+      final builder = MqttClientPayloadBuilder()..addString(payload);
       client.publishMessage(
         '${config.baseTopic}/$id/set',
-        payload,
         MqttQos.atLeastOnce,
+        builder.payload!,
       );
     }
   }

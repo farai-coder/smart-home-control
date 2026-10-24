@@ -44,9 +44,13 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
-      - name: Set up Flutter
+      # flutterpi_tool tracks flutter_tools internals. 0.12.0 supports the
+      # 3.44 line, so the Pi bundle is built with a pinned SDK instead of the
+      # latest stable. The main job still analyzes and tests on stable.
+      - name: Set up Flutter 3.44
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: 3.44.9
           channel: stable
           cache: true
 
@@ -54,7 +58,7 @@ jobs:
         run: flutter pub get
 
       - name: Install flutterpi_tool
-        run: flutter pub global activate flutterpi_tool
+        run: flutter pub global activate flutterpi_tool 0.12.0
 
       - name: Build ARM64 bundle
         run: |
