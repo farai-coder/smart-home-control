@@ -57,6 +57,12 @@ void main() {
       expect(result.payload, '{"state":"ON"}');
     });
 
+    test('brightness is published on the Zigbee 0-254 scale', () {
+      final c = HomeController();
+      final result = c.run('set bedroom 1 brightness to 60 percent');
+      expect(result.payload, contains('"brightness":152'));
+    });
+
     test('colour temperature is published in mireds', () {
       final c = HomeController();
       final result =
@@ -110,7 +116,7 @@ void main() {
 
       c.mutate(() => lamp.brightness = 30);
 
-      expect(bus.sent, <String>['lounge_light {"brightness":30}']);
+      expect(bus.sent, <String>['lounge_light {"brightness":76}']);
     });
 
     test('a lock publishes LOCK and UNLOCK', () {
@@ -159,14 +165,14 @@ void main() {
 
       c.applyState('kitchen_light', <String, dynamic>{
         'state': 'OFF',
-        'brightness': 30,
+        'brightness': 127,
         'color_temp': 333,
         'color': <String, dynamic>{'hex': '#4F8ECF'},
       });
 
       final light = c.byId('kitchen_light')!;
       expect(light.on, isFalse);
-      expect(light.brightness, 30);
+      expect(light.brightness, 50);
       expect(light.kelvin, 3003);
       expect(light.colour, 'blue');
       expect(bus.sent, isEmpty);

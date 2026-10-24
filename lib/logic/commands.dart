@@ -435,7 +435,8 @@ CommandResult _handleLights(String text, CommandStore store) {
       targets,
       '${_listNames(targets)} -> $brightness%',
       _mqttMany(targets, <String, Object>{
-        'brightness': brightness,
+        // Zigbee2MQTT takes brightness on a 0-254 scale.
+        'brightness': (brightness * 254 / 100).round(),
         'state': 'ON',
       }),
     );

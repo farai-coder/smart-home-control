@@ -212,7 +212,10 @@ class HomeController extends ChangeNotifier {
     }
 
     final brightness = _asInt(fields['brightness']);
-    if (brightness != null) d.brightness = brightness.clamp(0, 100).toInt();
+    if (brightness != null) {
+      // Zigbee2MQTT reports 0-254; the UI works in percent.
+      d.brightness = (brightness.clamp(0, 254) * 100 / 254).round();
+    }
 
     final mireds = _asInt(fields['color_temp']);
     if (mireds != null && mireds > 0) {
@@ -348,7 +351,7 @@ class HomeController extends ChangeNotifier {
     switch (d.type) {
       case 'light':
         if (before.brightness != d.brightness) {
-          patch['brightness'] = d.brightness;
+          patch['brightness'] = (d.brightness * 254 / 100).round();
         }
         if (before.kelvin != d.kelvin) {
           patch['color_temp'] = (1000000 / d.kelvin).round();

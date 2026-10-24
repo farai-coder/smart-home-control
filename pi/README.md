@@ -15,7 +15,7 @@ Actions are published to `zigbee2mqtt/<id>/set` and state is read back from
 
 | Device type | Payload keys |
 | --- | --- |
-| light | `state`, `brightness`, `color_temp` (mireds), `color.hex` |
+| light | `state`, `brightness` (0-254, converted from percent), `color_temp` (mireds), `color.hex` |
 | switch | `state` |
 | fan | `state`, `speed`, `preset_mode` |
 | climate | `state`, `system_mode`, `occupied_heating_setpoint`, `occupied_cooling_setpoint` |
