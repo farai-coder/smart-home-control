@@ -315,6 +315,9 @@ CommandResult runCommand(String raw, CommandStore store) {
   if (RegExp(r'\bsensor\b|\bhumidity\b|\bread\b').hasMatch(text)) {
     return _handleSensor(text, store);
   }
+  if (RegExp(r'\b(lights?|lamps?|brightness|dimmer)\b').hasMatch(text)) {
+    return _handleLights(text, store);
+  }
   if (RegExp(
           r'\b(thermostat|climate|heating|cooling|temperature|degrees|conditioner|aircon|air con)\b')
       .hasMatch(text)) {
@@ -323,9 +326,6 @@ CommandResult runCommand(String raw, CommandStore store) {
   if (RegExp(r'\bfan\b').hasMatch(text)) return _handleFan(text, store);
   if (RegExp(r'\b(plug|switch|socket|outlet)\b').hasMatch(text)) {
     return _handleSwitch(text, store);
-  }
-  if (RegExp(r'\b(lights?|lamps?|brightness|dimmer)\b').hasMatch(text)) {
-    return _handleLights(text, store);
   }
   if (RegExp(r'\b(scene|automation|script|routine)\b').hasMatch(text)) {
     return _handleScene(text, store);
