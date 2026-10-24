@@ -1269,9 +1269,8 @@ class _GatePlateCardState extends State<_GatePlateCard> {
                 onTap: () {
                   final plate = _plate();
                   if (plate == null) {
-                    c.plateMessage = 'Type a plate first, like ABC 1234';
-                    c.plateMessageOk = false;
-                    c.notifyListeners();
+                    c.setPlateMessage('Type a plate first, like ABC 1234',
+                        ok: false);
                     return;
                   }
                   c.checkPlate(plate);
@@ -1298,9 +1297,8 @@ class _GatePlateCardState extends State<_GatePlateCard> {
                 onTap: () {
                   final plate = _plate();
                   if (plate == null) {
-                    c.plateMessage = 'Type a plate first, like ABC 1234';
-                    c.plateMessageOk = false;
-                    c.notifyListeners();
+                    c.setPlateMessage('Type a plate first, like ABC 1234',
+                        ok: false);
                     return;
                   }
                   c.addPlate(plate);

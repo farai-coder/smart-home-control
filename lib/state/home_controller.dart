@@ -160,6 +160,12 @@ class HomeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setPlateMessage(String message, {bool ok = true}) {
+    plateMessage = message;
+    plateMessageOk = ok;
+    notifyListeners();
+  }
+
   void addFound(String name) {
     if (!added.contains(name)) {
       added.add(name);
