@@ -62,7 +62,7 @@ jobs:
 
       - name: Build ARM64 bundle
         run: |
-          flutter pub global run flutterpi_tool build \
+          "$PUB_CACHE/bin/flutterpi_tool" build \
             --arch=arm64 --cpu=pi5 --release --tree-shake-icons \
             --dart-define=LIVE=true \
             --dart-define=MQTT_HOST=localhost

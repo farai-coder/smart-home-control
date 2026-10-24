@@ -35,7 +35,19 @@ echo "Building $TARGET for $MQTT_HOST:$MQTT_PORT ($MQTT_BASE)"
 flutter pub get
 flutter pub global activate flutterpi_tool
 
-flutter pub global run flutterpi_tool build \
+# Global executables that depend on the Flutter SDK can't be started with
+# "flutter pub global run", so call the pub cache wrapper directly.
+TOOL="${PUB_CACHE:-$HOME/.pub-cache}/bin/flutterpi_tool"
+if [ ! -x "$TOOL" ]; then
+  TOOL="$(command -v flutterpi_tool || true)"
+fi
+if [ -z "$TOOL" ] || [ ! -x "$TOOL" ]; then
+  echo "flutterpi_tool is not available after activation." >&2
+  echo "Add ${PUB_CACHE:-$HOME/.pub-cache}/bin to PATH and rerun." >&2
+  exit 1
+fi
+
+"$TOOL" build \
   --arch=arm64 \
   --cpu="$PI_CPU" \
   --release \
