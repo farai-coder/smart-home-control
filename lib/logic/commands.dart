@@ -168,8 +168,10 @@ const Set<String> _stop = <String>{
   'control', 'mode', 'colour', 'color', 'temperature', 'speed', 'preset',
   'volume', 'source', 'track', 'fan', 'plug', 'switch', 'sensor', 'camera',
   'gate', 'alarm', 'vacuum', 'blinds', 'curtains', 'door', 'lock', 'unlock',
-  'scene', 'automation', 'script', 'remote', 'lights', 'light', 'lamp', 'lamps',
+  'scene', 'automation', 'script', 'remote',
 };
+
+const Set<String> _lightNouns = <String>{'light', 'lights', 'lamp', 'lamps'};
 
 String normalizeText(String text) {
   return text
@@ -336,7 +338,10 @@ CommandResult runCommand(String raw, CommandStore store) {
 }
 
 bool _hasLightMatch(String text, CommandStore store) {
-  final tokens = text.split(' ').where((t) => t.length > 2).toList();
+  final tokens = text
+      .split(' ')
+      .where((t) => t.length > 2 && !_lightNouns.contains(t))
+      .toList();
   for (final d in store.devices) {
     if (d.type != 'light') continue;
     final hay = '${d.name} ${d.room}'.toLowerCase();

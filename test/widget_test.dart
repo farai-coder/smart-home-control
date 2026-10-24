@@ -9,6 +9,11 @@ void main() {
 
     expect(find.text('My Home'), findsOneWidget);
     expect(find.text('Air Conditioner'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Scenes'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Scenes'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey<String>('tab-rooms')));
@@ -37,6 +42,11 @@ void main() {
 
     expect(find.text('Brightness'), findsOneWidget);
     expect(find.text('Colour temperature'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('zigbee2mqtt/kitchen_light/set'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('zigbee2mqtt/kitchen_light/set'), findsOneWidget);
   });
 
