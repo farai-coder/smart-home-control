@@ -138,7 +138,7 @@ void main() {
       final c = live(bus);
       c.run('activate movie night');
 
-      expect(bus.sent, contains('lounge_light {"brightness":20}'));
+      expect(bus.sent, contains('lounge_light {"brightness":51}'));
       expect(bus.sent, contains('lounge_blinds {"position":0,"state":"CLOSE"}'));
     });
 
