@@ -54,6 +54,7 @@ class Device {
     this.lastRun,
     this.lastCommand = 'power',
     this.area = 'Lounge',
+    this.online = true,
   }) : history = history ?? const <double>[];
 
   final String id;
@@ -97,6 +98,9 @@ class Device {
   String? lastRun;
   String lastCommand;
   String area;
+
+  /// Zigbee2MQTT availability. Devices start assumed online.
+  bool online;
 }
 
 class TypeMeta {
@@ -137,6 +141,16 @@ const List<String> kFamilies = <String>[
   'More',
 ];
 
+const Map<String, String> kColourHex = <String, String>{
+  'white': '#FBF6EA',
+  'warm': '#FFD29A',
+  'amber': '#FFB45C',
+  'red': '#DF5B4C',
+  'green': '#63A06C',
+  'blue': '#4F8ECF',
+  'cool': '#E4EEFB',
+};
+
 const Map<String, Color> kColours = <String, Color>{
   'white': Color(0xFFFBF6EA),
   'warm': Color(0xFFFFD29A),
@@ -167,6 +181,7 @@ bool isDeviceOn(Device d) {
 }
 
 String deviceStateLine(Device d) {
+  if (!d.online) return 'Offline';
   switch (d.type) {
     case 'light':
       return d.on ? 'On - ${d.brightness}%' : 'Off';

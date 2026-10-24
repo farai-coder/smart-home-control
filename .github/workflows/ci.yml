@@ -37,3 +37,43 @@ jobs:
           name: web-build
           path: build/web
           if-no-files-found: error
+
+  pi-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install packages
+        run: flutter pub get
+
+      - name: Install flutterpi_tool
+        run: flutter pub global activate flutterpi_tool
+
+      - name: Build ARM64 bundle
+        run: |
+          flutter pub global run flutterpi_tool build \
+            --arch=arm64 --cpu=pi5 --release --tree-shake-icons \
+            --dart-define=LIVE=true \
+            --dart-define=MQTT_HOST=localhost
+
+      - name: Check the bundle
+        run: |
+          set -euo pipefail
+          ls -la build/flutter-pi/pi5-64
+          test -x build/flutter-pi/pi5-64/flutter-pi
+          test -f build/flutter-pi/pi5-64/libflutter_engine.so
+          test -f build/flutter-pi/pi5-64/app.so
+
+      - name: Upload Pi bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: pi-bundle
+          path: build/flutter-pi/pi5-64
+          if-no-files-found: error

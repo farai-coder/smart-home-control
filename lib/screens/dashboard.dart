@@ -94,14 +94,20 @@ class DashboardScreen extends StatelessWidget {
         const SizedBox(height: 4),
         LayoutBuilder(
           builder: (context, constraints) {
-            final cardWidth = (constraints.maxWidth - 12) / 2;
+            final columns =
+                (constraints.maxWidth / 230).floor().clamp(2, 4).toInt();
+            final cardWidth =
+                (constraints.maxWidth - 12 * (columns - 1)) / columns;
             return Wrap(
               spacing: 12,
               runSpacing: 12,
               children: list.map((d) {
                 final wide = d.type == 'climate';
+                final width = wide
+                    ? (columns >= 3 ? cardWidth * 2 + 12 : constraints.maxWidth)
+                    : cardWidth;
                 return SizedBox(
-                  width: wide ? constraints.maxWidth : cardWidth,
+                  width: width,
                   child: _DeviceCard(controller: c, device: d),
                 );
               }).toList(),

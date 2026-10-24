@@ -7,9 +7,14 @@ locks, media, scenes, vacuum, alarm, camera, sensors, the gate and the vehicle
 plate whitelist. It carries a 59 command rule engine with tests, so the same
 sentences used with the Python assistant work here.
 
-The app runs against demo devices held in memory. Nothing is published to a
-broker: every action updates the UI and shows the Zigbee2MQTT topic and payload
-it would send.
+Two builds come out of this code:
+
+- **Web demo** (`flutter run -d chrome`): in-memory devices. Actions show the
+  Zigbee2MQTT topic and payload they would send, and nothing leaves the page.
+- **Pi terminal** (`pi/build.sh`): the release bundle for flutter-pi, wired to
+  Mosquitto. Lights, plugs, fans, climate, covers, locks and sensors publish and
+  read real state; the rail shows **Live** or **Offline**. See
+  [pi/README.md](pi/README.md).
 
 ## Screens
 
@@ -29,12 +34,22 @@ it would send.
 - **Voice control**: one sheet with all 59 commands, a text field, and the last
   result with its MQTT payload. Spoken input stays with `assistant.py` and
   Whisper; this panel runs the same rules on typed commands.
+- **Terminal layout**: at 700 px and wider the phone chrome gives way to a
+  left rail with 64 px touch targets, up to four device columns and a
+  **Speak** button. That is the layout the Pi boots into.
 
 ## Run it
 
 ```bash
 flutter pub get
 flutter run -d chrome
+```
+
+That is demo mode. For the Pi terminal:
+
+```bash
+sudo bash pi/install.sh                     # once, on the Pi
+PI_HOST=raspberrypi.local bash pi/deploy.sh # from the build machine
 ```
 
 The repository commits `lib/`, `test/` and `web/`. The native shells are not
@@ -72,14 +87,23 @@ the garage, is refused instead of falling back to another room.
 
 ```
 lib/
+  config.dart                broker address and LIVE flag from dart-defines
   data/devices.dart          demo home and type metadata
-  logic/commands.dart        the 59 command rule engine
-  state/home_controller.dart navigation, actions, activity and history
+  logic/commands.dart        the 59 command rule engine and payloads
+  services/                  MQTT bus (dart:io) and the web no-op stub
+  state/home_controller.dart navigation, actions, diffs and inbound state
   screens/                   dashboard, rooms, device, analysis, add, voice sheet
   widgets/                   shared cards, switches, sliders, device panels
 test/
   commands_test.dart         every command plus focused behaviour tests
+  live_test.dart             MQTT payloads, publishing and inbound state
   widget_test.dart           navigation and voice sheet widget tests
+pi/
+  build.sh                   ARM64 flutter-pi release bundle
+  install.sh                 one-time Pi setup and systemd service
+  deploy.sh                  build, rsync to the Pi, restart
+  smart-home-terminal.service
+  README.md                  live payloads, display settings, troubleshooting
 ```
 
 ## Tests
@@ -90,8 +114,8 @@ flutter test
 flutter build web
 ```
 
-The CI workflow runs the same three steps on every push, then uploads the web
-build as an artifact.
+The CI workflow runs the same three steps on every push, uploads the web build,
+and builds the ARM64 flutter-pi bundle so the Pi target stays compiling.
 
 ## Status
 

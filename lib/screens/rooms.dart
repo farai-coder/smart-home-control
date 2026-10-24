@@ -39,7 +39,10 @@ class RoomsScreen extends StatelessWidget {
         const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
-            final width = (constraints.maxWidth - 12) / 2;
+            final columns =
+                (constraints.maxWidth / 200).floor().clamp(2, 4).toInt();
+            final width =
+                (constraints.maxWidth - 12 * (columns - 1)) / columns;
             return Wrap(
               spacing: 12,
               runSpacing: 12,

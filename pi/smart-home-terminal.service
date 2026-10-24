@@ -1,0 +1,23 @@
+[Unit]
+Description=Smart Home Control terminal (flutter-pi)
+Documentation=https://github.com/farai-coder/smart-home-control
+After=systemd-user-sessions.service network-online.target
+Wants=network-online.target
+Conflicts=getty@tty1.service
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+SupplementaryGroups=video render input
+WorkingDirectory=/opt/smart-home/app
+Environment=HOME=/home/pi
+EnvironmentFile=-/etc/default/smart-home-terminal
+ExecStart=/usr/local/bin/smart-home-terminal
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

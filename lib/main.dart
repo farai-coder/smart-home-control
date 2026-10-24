@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'config.dart';
 import 'data/devices.dart';
 import 'screens/add_device.dart';
 import 'screens/analysis.dart';
@@ -9,6 +10,7 @@ import 'screens/dashboard.dart';
 import 'screens/device_screen.dart';
 import 'screens/rooms.dart';
 import 'screens/voice_sheet.dart';
+import 'services/home_bus.dart';
 import 'state/home_controller.dart';
 
 void main() {
@@ -44,7 +46,15 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  final HomeController _controller = HomeController();
+  final HomeController _controller = HomeController(
+    config: const TerminalConfig(),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.start();
+  }
 
   @override
   void dispose() {
@@ -108,27 +118,197 @@ class _HomeShellState extends State<HomeShell> {
         final c = _controller;
         final isAdd = c.route.name == 'add';
 
-        return PhoneFrame(
-          child: Scaffold(
-            backgroundColor: isAdd ? kNavy : kScreen,
-            body: SafeArea(
-              bottom: false,
-              child: _screen(),
-            ),
-            bottomNavigationBar: _TabBar(controller: c, dark: isAdd),
-            floatingActionButton: isAdd
-                ? null
-                : FloatingActionButton(
-                    onPressed: _openVoice,
-                    backgroundColor: kAccent,
-                    foregroundColor: Colors.white,
-                    elevation: 6,
-                    shape: const CircleBorder(),
-                    child: const Icon(Icons.mic_none),
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 700;
+            if (!wide) {
+              return PhoneFrame(
+                child: Scaffold(
+                  backgroundColor: isAdd ? kNavy : kScreen,
+                  body: SafeArea(
+                    bottom: false,
+                    child: _screen(),
                   ),
-          ),
+                  bottomNavigationBar: _TabBar(controller: c, dark: isAdd),
+                  floatingActionButton: isAdd
+                      ? null
+                      : FloatingActionButton(
+                          onPressed: _openVoice,
+                          backgroundColor: kAccent,
+                          foregroundColor: Colors.white,
+                          elevation: 6,
+                          shape: const CircleBorder(),
+                          child: const Icon(Icons.mic_none),
+                        ),
+                ),
+              );
+            }
+
+            return Scaffold(
+              backgroundColor: isAdd ? kNavy : kScreen,
+              body: Row(
+                children: <Widget>[
+                  TerminalRail(controller: c),
+                  Expanded(
+                    child: SafeArea(
+                      bottom: false,
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1080),
+                          child: _screen(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              floatingActionButton: isAdd
+                  ? null
+                  : FloatingActionButton.extended(
+                      onPressed: _openVoice,
+                      backgroundColor: kAccent,
+                      foregroundColor: Colors.white,
+                      elevation: 6,
+                      icon: const Icon(Icons.mic_none),
+                      label: const Text('Speak'),
+                    ),
+            );
+          },
         );
       },
+    );
+  }
+}
+
+/// Left rail used on the Pi touchscreen and any wide window. Touch targets are
+/// 64 px tall so a finger can hit them on a 7 inch panel.
+class TerminalRail extends StatelessWidget {
+  const TerminalRail({super.key, required this.controller});
+
+  final HomeController controller;
+
+  static const List<MapEntry<String, MapEntry<String, IconData>>> tabs =
+      <MapEntry<String, MapEntry<String, IconData>>>[
+    MapEntry<String, MapEntry<String, IconData>>(
+        'dashboard', MapEntry<String, IconData>('Home', Icons.home_outlined)),
+    MapEntry<String, MapEntry<String, IconData>>(
+        'rooms', MapEntry<String, IconData>('Rooms', Icons.grid_view_rounded)),
+    MapEntry<String, MapEntry<String, IconData>>(
+        'analysis', MapEntry<String, IconData>('Analysis', Icons.bar_chart)),
+    MapEntry<String, MapEntry<String, IconData>>(
+        'add', MapEntry<String, IconData>('Add', Icons.add)),
+  ];
+
+  String get _active {
+    final name = controller.route.name;
+    if (name == 'room' || name == 'device') return 'rooms';
+    return name;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 98,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(right: BorderSide(color: kLine)),
+      ),
+      child: Column(
+        children: <Widget>[
+          const SizedBox(height: 22),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: kAccent,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: const Icon(Icons.home_rounded, color: Colors.white),
+          ),
+          const SizedBox(height: 26),
+          ...tabs.map((tab) {
+            final active = _active == tab.key;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              child: GestureDetector(
+                key: ValueKey<String>('tab-${tab.key}'),
+                onTap: () => controller.tab(tab.key),
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: active ? kAccentSoft : Colors.transparent,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(tab.value.value,
+                          size: 22, color: active ? kAccent : kMuted),
+                      const SizedBox(height: 5),
+                      Text(
+                        tab.value.key,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight:
+                              active ? FontWeight.w700 : FontWeight.w500,
+                          color: active ? kAccent : kMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+          const Spacer(),
+          BusBadge(controller: controller),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+}
+
+class BusBadge extends StatelessWidget {
+  const BusBadge({super.key, required this.controller});
+
+  final HomeController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = controller.busState;
+    final colour = switch (state) {
+      BusState.live => const Color(0xFF3F9A63),
+      BusState.connecting => const Color(0xFFD89B3C),
+      BusState.offline => const Color(0xFFCF5B4C),
+      BusState.demo => kMuted,
+    };
+    final label = switch (state) {
+      BusState.live => 'Live',
+      BusState.connecting => 'Linking',
+      BusState.offline => 'Offline',
+      BusState.demo => 'Demo',
+    };
+
+    return Tooltip(
+      message: controller.busDetail,
+      child: Column(
+        key: const ValueKey<String>('bus-status'),
+        children: <Widget>[
+          Container(
+            width: 9,
+            height: 9,
+            decoration: BoxDecoration(color: colour, shape: BoxShape.circle),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            label,
+            style: TextStyle(
+                fontSize: 10, fontWeight: FontWeight.w600, color: colour),
+          ),
+        ],
+      ),
     );
   }
 }

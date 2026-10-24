@@ -22,12 +22,22 @@ class CommandResult {
     required this.text,
     this.action = '',
     this.deviceId,
+    this.targetIds = const <String>[],
+    this.payload = '',
   });
 
   final bool ok;
   final String text;
   final String action;
   final String? deviceId;
+
+  /// Device ids the action applies to, used to publish one message per target.
+  final List<String> targetIds;
+
+  /// JSON payload shared by every target, empty when nothing is published.
+  final String payload;
+
+  bool get publishes => targetIds.isNotEmpty && payload.isNotEmpty;
 }
 
 class CommandStore {
@@ -36,16 +46,6 @@ class CommandStore {
   final List<Device> devices;
   final List<String> plates;
 }
-
-const Map<String, String> _colourHex = <String, String>{
-  'white': '#fbf6ea',
-  'warm': '#ffd29a',
-  'amber': '#ffb45c',
-  'red': '#df5b4c',
-  'green': '#63a06c',
-  'blue': '#4f8ecf',
-  'cool': '#e4eefb',
-};
 
 const List<CommandGroup> commandGroups = <CommandGroup>[
   CommandGroup('Lights', <CommandItem>[
@@ -190,11 +190,15 @@ CommandResult _success(
   String text,
   String action,
 ) {
+  final isMqtt = action.startsWith('zigbee2mqtt/');
+  final brace = action.indexOf('{');
   return CommandResult(
     ok: true,
     text: text,
     action: action,
     deviceId: targets.isEmpty ? null : targets.first.id,
+    targetIds: isMqtt ? targets.map((d) => d.id).toList() : const <String>[],
+    payload: isMqtt && brace >= 0 ? action.substring(brace) : '',
   );
 }
 
@@ -204,9 +208,7 @@ String _mqtt(Device device, Map<String, Object> patch) {
 
 String _mqttMany(List<Device> targets, Map<String, Object> patch) {
   if (targets.isEmpty) return '';
-  final line = _mqtt(targets.first, patch);
-  if (targets.length == 1) return line;
-  return '$line  (+${targets.length - 1} more)';
+  return _mqtt(targets.first, patch);
 }
 
 String _listNames(List<Device> targets) {
@@ -396,8 +398,10 @@ CommandResult _handleLights(String text, CommandStore store) {
       d.kelvin = kelvin;
       d.on = true;
     }
+    // Zigbee2MQTT takes colour temperature in mireds, not kelvin.
+    final mireds = (1000000 / kelvin).round();
     return _success(targets, '${_listNames(targets)} -> $kelvin K',
-        _mqttMany(targets, <String, Object>{'colour_temp': kelvin}));
+        _mqttMany(targets, <String, Object>{'color_temp': mireds}));
   }
 
   if (RegExp(r'\b(colour|color)\b').hasMatch(text)) {
@@ -411,7 +415,7 @@ CommandResult _handleLights(String text, CommandStore store) {
       targets,
       '${_listNames(targets)} -> $name',
       _mqttMany(targets, <String, Object>{
-        'colour': <String, String>{'hex': _colourHex[name] ?? ''},
+        'color': <String, String>{'hex': kColourHex[name] ?? ''},
       }),
     );
   }
